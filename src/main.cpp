@@ -188,12 +188,16 @@ void switch_to_settings_screen() {
     switch (current_settings_screen) {
       case SETTINGS_MENU: {
         lv_label_set_text(title, "Configuration");
-        // Settings menu with category selection
+        // Settings menu with category selection (2x2 grid layout)
         const char *menu_items[] = {"Units", "Audio", "Alerts", "Exit"};
         for (int i = 0; i < 4; i++) {
           lv_obj_t *menu_btn = lv_btn_create(settings_screen);
-          lv_obj_set_size(menu_btn, 280, 50);
-          lv_obj_align(menu_btn, LV_ALIGN_CENTER, 0, -70 + (i * 60));
+          lv_obj_set_size(menu_btn, 140, 60); // Wider buttons for 2x2 grid
+          // 2x2 grid positioning: Top row (y=-40), Bottom row (y=40)
+          // Left column (x=-80), Right column (x=80)
+          int row = i / 2; // 0 for top row, 1 for bottom row
+          int col = i % 2; // 0 for left column, 1 for right column
+          lv_obj_align(menu_btn, LV_ALIGN_CENTER, (col == 0 ? -80 : 80), (row == 0 ? -40 : 40));
           lv_obj_set_style_bg_color(menu_btn, lv_color_hex(0x34495e), LV_PART_MAIN);
           lv_obj_set_style_border_width(menu_btn, 2, LV_PART_MAIN);
           lv_obj_set_style_border_color(menu_btn, lv_color_hex(0xFF6B35), LV_PART_MAIN);
@@ -222,7 +226,7 @@ void switch_to_settings_screen() {
         lv_obj_set_style_border_color(celsius_btn, use_celsius ? lv_color_hex(0x00FF00) : lv_color_hex(0xFF6B35), LV_PART_MAIN);
 
         lv_obj_t *celsius_label = lv_label_create(celsius_btn);
-        lv_label_set_text(celsius_label, "°C\nCelsius");
+        lv_label_set_text(celsius_label, "C\nCelsius");
         lv_obj_set_style_text_font(celsius_label, &lv_font_montserrat_18, 0);
         lv_obj_center(celsius_label);
 
@@ -234,13 +238,13 @@ void switch_to_settings_screen() {
         lv_obj_set_style_border_color(fahrenheit_btn, !use_celsius ? lv_color_hex(0x00FF00) : lv_color_hex(0xFF6B35), LV_PART_MAIN);
 
         lv_obj_t *fahrenheit_label = lv_label_create(fahrenheit_btn);
-        lv_label_set_text(fahrenheit_label, "°F\nFahrenheit");
+        lv_label_set_text(fahrenheit_label, "F\nFahrenheit");
         lv_obj_set_style_text_font(fahrenheit_label, &lv_font_montserrat_18, 0);
         lv_obj_center(fahrenheit_label);
 
         // Selection indicator showing which unit is currently active
         lv_obj_t *current_indicator = lv_label_create(settings_screen);
-        lv_label_set_text(current_indicator, use_celsius ? "← Current: Celsius (°C)" : "Current: Fahrenheit (°F) →");
+        lv_label_set_text(current_indicator, use_celsius ? "← Current: Celsius (C)" : "Current: Fahrenheit (F) →");
         lv_obj_set_style_text_color(current_indicator, lv_color_hex(0x00FF00), 0);
         lv_obj_set_style_text_font(current_indicator, &lv_font_montserrat_16, 0);
         lv_obj_align(current_indicator, LV_ALIGN_CENTER, 0, 50);
@@ -304,14 +308,14 @@ void switch_to_settings_screen() {
 
         // Actual threshold values (would need to be updated dynamically)
         char low_str[16];
-        snprintf(low_str, sizeof(low_str), "%.1f°C", low_temp_threshold);
+        snprintf(low_str, sizeof(low_str), "%.1f C", low_temp_threshold);
         lv_obj_t *low_value = lv_label_create(settings_screen);
         lv_label_set_text_fmt(low_value, low_str);
         lv_obj_set_style_text_color(low_value, lv_color_hex(0xFFFFFF), 0);
         lv_obj_align(low_value, LV_ALIGN_TOP_LEFT, 150, 60);
 
         char high_str[16];
-        snprintf(high_str, sizeof(high_str), "%.1f°C", high_temp_threshold);
+        snprintf(high_str, sizeof(high_str), "%.1f C", high_temp_threshold);
         lv_obj_t *high_value = lv_label_create(settings_screen);
         lv_label_set_text_fmt(high_value, high_str);
         lv_obj_set_style_text_color(high_value, lv_color_hex(0xFFFFFF), 0);
@@ -349,7 +353,7 @@ void switch_to_settings_screen() {
         lv_obj_align(save_btn, LV_ALIGN_CENTER, 60, 40);
         lv_obj_set_style_bg_color(save_btn, lv_color_hex(0x666666), LV_PART_MAIN);
         lv_obj_set_style_border_width(save_btn, exit_selection_cancel ? 1 : 3, LV_PART_MAIN);
-        lv_obj_set_style_border_color(save_btn, lv_color_hex(0xFF6B35), LV_PART_MAIN);
+        lv_obj_set_style_border_color(save_btn, !exit_selection_cancel ? lv_color_hex(0x00FF00) : lv_color_hex(0xFF6B35), LV_PART_MAIN);
 
         lv_obj_t *save_label = lv_label_create(save_btn);
         lv_label_set_text(save_label, "SAVE");
@@ -362,19 +366,6 @@ void switch_to_settings_screen() {
         break;
       }
     }
-
-    // Back button at bottom (common to all settings screens)
-    lv_obj_t *back_btn = lv_btn_create(settings_screen);
-    lv_obj_set_size(back_btn, 100, 40);
-    lv_obj_align(back_btn, LV_ALIGN_BOTTOM_LEFT, 10, -15);
-    lv_obj_set_style_bg_color(back_btn, lv_color_hex(0x34495e), LV_PART_MAIN);
-    lv_obj_set_style_border_width(back_btn, 2, LV_PART_MAIN);
-    lv_obj_set_style_border_color(back_btn, lv_color_hex(0xFF6B35), LV_PART_MAIN);
-    lv_obj_add_event_cb(back_btn, settings_back_event_cb, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t *back_label = lv_label_create(back_btn);
-    lv_label_set_text(back_label, "BACK");
-    lv_obj_center(back_label);
 
     // Hardware control indicators
     lv_obj_t *control_indicator = lv_label_create(settings_screen);
@@ -472,6 +463,25 @@ void loop() {
   if (current_time - lastLvglTick >= screenTickPeriod) {
     lvgl_tick_task(NULL);
     lastLvglTick = current_time;
+  }
+
+  // Handle button polling for main menu navigation
+  if (current_screen == SCREEN_MAIN_MENU) {
+    static bool last_key_state = HIGH;
+    unsigned long current_time = millis();
+
+    // Read current key button state
+    bool current_key_state = digitalRead(KEY_PIN);
+
+    // Check Key (GPIO8) - Go to settings menu
+    if (current_key_state == LOW && last_key_state == HIGH && current_time - last_button_time[2] >= DEBOUNCE_DELAY) {
+      Serial.println("Key pressed (Main menu - go to settings)");
+      switch_to_screen(SCREEN_SETTINGS); // Go to settings menu
+      last_button_time[2] = current_time;
+    }
+
+    // Update last state
+    last_key_state = current_key_state;
   }
 
   // Handle button polling for settings navigation
@@ -682,6 +692,7 @@ void switch_to_screen(ScreenState new_screen) {
       break;
     case SCREEN_SETTINGS:
       lv_screen_load(settings_screen);
+      current_settings_screen = SETTINGS_MENU; // Reset to menu when entering settings
       switch_to_settings_screen(); // Populate settings screen with menu
       break;
   }
@@ -1176,12 +1187,12 @@ void temp_alert_slider_event_cb(lv_event_t *e) {
   if (slider == low_temp_slider) {
     low_temp_threshold = (float)lv_slider_get_value(slider);
     char low_temp_str[10];
-    snprintf(low_temp_str, sizeof(low_temp_str), "%.0f°C", low_temp_threshold);
+    snprintf(low_temp_str, sizeof(low_temp_str), "%.0f C", low_temp_threshold);
     lv_label_set_text(low_temp_label, low_temp_str);
   } else if (slider == high_temp_slider) {
     high_temp_threshold = (float)lv_slider_get_value(slider);
     char high_temp_str[10];
-    snprintf(high_temp_str, sizeof(high_temp_str), "%.0f°C", high_temp_threshold);
+    snprintf(high_temp_str, sizeof(high_temp_str), "%.0f C", high_temp_threshold);
     lv_label_set_text(high_temp_label, high_temp_str);
   }
 
